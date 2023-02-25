@@ -98,11 +98,10 @@ public class Program
 				.ToList();
 		}
 
-		
 		await WriteMergedResultsAsync(options.OutputFile, combinedItems);
 
-        return 0;
-     }
+		return 0;
+	}
 
 	private static List<(string filePath, NodePathInfo nodePathInfo)> CombineItems(IList<string> inputFiles, List<ConcurrentDictionary<string, NodePathInfo>> fileNodes)
 	{
@@ -197,7 +196,7 @@ public class Program
 				output.Write(preambleBytes);
 
 				Memory<byte> buffer = new Memory<byte>(new byte[10_000_000]); // 10MB buffer
-				
+
 				foreach (var item in totalItems)
 				{
 					await WriteNodeToDestinationAsync(sourceStreams[item.sourceFile], item.nodePathInfo, output, buffer);
@@ -249,7 +248,7 @@ public class Program
 			await using (MemoryMappedViewStream view = file.CreateViewStream())
 			{
 				List<long> lineOffsets = BuildLineOffsets(view);
-				
+
 				XmlReaderSettings settings = new XmlReaderSettings()
 				{
 					Async = true,
@@ -258,7 +257,7 @@ public class Program
 					ValidationFlags = XmlSchemaValidationFlags.None, CheckCharacters = true,
 					DtdProcessing = DtdProcessing.Ignore,
 				};
-				
+
 				using (XmlReader reader = XmlReader.Create(view, settings))
 				{
 					try
@@ -307,8 +306,8 @@ public class Program
 								throw new Exception($"Node {reader.Name} finishes at line {result.End.LineNumber} (position: {result.Start.LinePosition}) but we only know up to line {lineOffsets.Count} which occurs at {lineOffsets.Last()}");
 							}
 
-							result.Start.Offset = lineOffsets[(int) result.Start.LineNumber] + (result.Start.LinePosition - 1);
-							result.End.Offset = lineOffsets[(int) result.End.LineNumber] + (result.End.LinePosition - 1);
+							result.Start.Offset = lineOffsets[(int)result.Start.LineNumber] + (result.Start.LinePosition - 1);
+							result.End.Offset = lineOffsets[(int)result.End.LineNumber] + (result.End.LinePosition - 1);
 
 							if (includeItem(result) == false)
 							{
@@ -330,7 +329,7 @@ public class Program
 										Start = result.Start,
 										End = result.End,
 										// Composed of all the ids but this one
-										AlternateIds = result.AlternateIds.Where(i => i != id).Union(new[] {result.PrimaryId}).ToList()!,
+										AlternateIds = result.AlternateIds.Where(i => i != id).Union(new[] { result.PrimaryId }).ToList()!,
 										Address = result.Address,
 									};
 									pushNodePath(alt);
@@ -341,12 +340,12 @@ public class Program
 					{
 						if (reader.EOF == true)
 						{
-							Console.WriteLine("Is EOF, is good!");
+							Console.WriteLine("Reader found EOF.");
 						}
 
 						if (view.Position == view.Length)
 						{
-							Console.WriteLine("File is at the end... probably okay?");
+							Console.WriteLine("File has completed reading.");
 						} else
 						{
 							Console.WriteLine($"At: {view.PointerOffset}: {ex}");
@@ -498,51 +497,51 @@ public class Program
 
 
 	public static IList<string> GenerateIds(XmlReader reader)
-    {
-        if (reader.Name == "sms")
-        {
-            string content = reader.GetAttribute("body") ?? string.Empty;
-            string contentHash = "";
-            if (string.IsNullOrWhiteSpace(content) == false)
-            {
-                using (SHA1 sha1 = SHA1.Create())
-                {
-                    byte[] bytes = Encoding.UTF8.GetBytes(content);
-                    byte[] hashedBytes = sha1.ComputeHash(bytes, 0, bytes.Length);
-                    contentHash = Convert.ToBase64String(hashedBytes);
-                }
-            }
+	{
+		if (reader.Name == "sms")
+		{
+			string content = reader.GetAttribute("body") ?? string.Empty;
+			string contentHash = "";
+			if (string.IsNullOrWhiteSpace(content) == false)
+			{
+				using (SHA1 sha1 = SHA1.Create())
+				{
+					byte[] bytes = Encoding.UTF8.GetBytes(content);
+					byte[] hashedBytes = sha1.ComputeHash(bytes, 0, bytes.Length);
+					contentHash = Convert.ToBase64String(hashedBytes);
+				}
+			}
 
-            return new []
-            {
-                $"SMS=1_D={reader.GetAttribute("date")}_DS={reader.GetAttribute("date_sent")}_A={reader.GetAttribute("address")}_P={reader.GetAttribute("protocol")}_T={reader.GetAttribute("type")}_C={contentHash}"
-            };
-        }
+			return new[]
+			{
+				$"SMS=1_D={reader.GetAttribute("date")}_DS={reader.GetAttribute("date_sent")}_A={reader.GetAttribute("address")}_P={reader.GetAttribute("protocol")}_T={reader.GetAttribute("type")}_C={contentHash}"
+			};
+		}
 
-        if (reader.Name == "mms")
-        {
-            string commonAttributes = $"MMS=1_D={reader.GetAttribute("date")}_DS={reader.GetAttribute("date_sent")}_MB={reader.GetAttributeNullable("msg_box")}_A={reader.GetAttributeNullable("address")}";
+		if (reader.Name == "mms")
+		{
+			string commonAttributes = $"MMS=1_D={reader.GetAttribute("date")}_DS={reader.GetAttribute("date_sent")}_MB={reader.GetAttributeNullable("msg_box")}_A={reader.GetAttributeNullable("address")}";
 
-            List<string> ids = new List<string>();
-            string? m_id = reader.GetAttributeNullable("m_id");
-            if (string.IsNullOrWhiteSpace(m_id) == false)
-            {
-                ids.Add($"{commonAttributes}_MID={m_id}");
-            }
+			List<string> ids = new List<string>();
+			string? m_id = reader.GetAttributeNullable("m_id");
+			if (string.IsNullOrWhiteSpace(m_id) == false)
+			{
+				ids.Add($"{commonAttributes}_MID={m_id}");
+			}
 
-            string? transaction_id = reader.GetAttributeNullable("tr_id");
-            if (string.IsNullOrWhiteSpace(transaction_id) == false)
-            {
-                ids.Add($"{commonAttributes}_TRID={transaction_id}");
-            }
+			string? transaction_id = reader.GetAttributeNullable("tr_id");
+			if (string.IsNullOrWhiteSpace(transaction_id) == false)
+			{
+				ids.Add($"{commonAttributes}_TRID={transaction_id}");
+			}
 
-            //return ids;
-            if (ids.Any() == true)
-            {
-                return ids;
-            }
-        }
+			//return ids;
+			if (ids.Any() == true)
+			{
+				return ids;
+			}
+		}
 
-        return new[] {reader.Value};
-    }
+		return new[] { reader.Value };
+	}
 }

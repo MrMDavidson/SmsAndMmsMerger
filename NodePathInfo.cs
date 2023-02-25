@@ -19,12 +19,12 @@ public class NodePathInfo
 	/// Name of the node
 	/// </summary>
 	/// <example>&lt;sms&gt; would be named sms</example>
-    public string Name { get; set; }
+	public string Name { get; set; }
 
 	/// <summary>
 	/// An identifier for this node
 	/// </summary>
-    public string Id { get; set; }
+	public string Id { get; set; }
 
 	/// <summary>
 	/// The primary identifier of the node
@@ -39,12 +39,12 @@ public class NodePathInfo
 	/// <summary>
 	/// Other identifiers that can be used to find this <seealso cref="NodePathInfo"/>
 	/// </summary>
-    public IList<string> AlternateIds { get; set; }
+	public IList<string> AlternateIds { get; set; }
 
 	/// <summary>
 	/// Date that this node is for
 	/// </summary>
-    public long Date { get; set; }
+	public long Date { get; set; }
 
 	/// <summary>
 	/// Positional information for the start of the node
@@ -60,7 +60,7 @@ public class NodePathInfo
 	/// Number of bytes the node occupies
 	/// </summary>
 	public long ByteCount => End.Offset - Start.Offset;
-	
+
 	/// <summary>
 	/// Address (ie. phone number) for this node
 	/// </summary>
