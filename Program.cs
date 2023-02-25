@@ -258,6 +258,8 @@ public class Program
 					DtdProcessing = DtdProcessing.Ignore,
 				};
 
+				string[] supportedTopLevelTags = new string[] { "smses", "allsms" };
+
 				using (XmlReader reader = XmlReader.Create(view, settings))
 				{
 					try
@@ -269,10 +271,10 @@ public class Program
 
 						await reader.MoveToContentAsync();
 
-						if (reader.Name != "smses")
+						if (supportedTopLevelTags.Contains(reader.Name) == false)
 						{
 							// Unhandled file type
-							throw new Exception($"Expected to encounter <smses> instead found <{reader.Name}>. Aborting.");
+							throw new Exception($"Encountered a top level tag of <{reader.Name}> which is unsupported. Supported top level tags are; {string.Join(", ", supportedTopLevelTags.Select(t => $"<{t}>"))}. Aborting.");
 						}
 
 						Dictionary<string, Func<XmlReader, Task<NodePathInfo>>> analysisMap = new Dictionary<string, Func<XmlReader, Task<NodePathInfo>>>()
